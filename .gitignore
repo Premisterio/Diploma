@@ -1,0 +1,49 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.sqlite3
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# FastAPI/SQLAlchemy
+instance/
+*.db
+
+# IDE / Editor configs
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# React / Node
+node_modules/
+build/
+dist/
+.env
+.env.*.local
+
+# npm / yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+*.pid
+*.pid.lock
+docker-compose.override.yml
+
+# Cache
+.cache/
+coverage/
+.next/

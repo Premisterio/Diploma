@@ -1,8 +1,8 @@
 fastapi
-uvicorn[standard]
+uvicorn
 sqlalchemy
 psycopg2-binary
-python-multipart
-pandas
-python-dotenv
+passlib[bcrypt]
+pydantic
+
 # will pip freeze exact versions later
