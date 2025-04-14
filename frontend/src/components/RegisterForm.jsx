@@ -16,6 +16,7 @@ export default function RegisterForm() {
       const res = await axios.post("http://localhost:8000/register", form);
       setMessage(`Успішно зареєстровано: ${res.data.email}`);
     } catch (err) {
+      console.error(err);
       setMessage("Користувач уже існує або сталася помилка");
     }
   };

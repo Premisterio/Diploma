@@ -18,6 +18,7 @@ export default function LoginForm() {
       setMessage("Вхід успішний");
       // redirect to dashboard - пізніше
     } catch (err) {
+      console.error(err);
       setMessage("Невірні дані");
     }
   };
