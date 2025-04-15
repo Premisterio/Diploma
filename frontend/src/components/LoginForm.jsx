@@ -2,11 +2,13 @@
 
 import { useState } from "react"
 import Alert from "./Alert"
+import { useAuth } from "../context/AuthContext"
 
 function LoginForm() {
   const [form, setForm] = useState({ email: "", password: "" })
   const [isLoading, setIsLoading] = useState(false)
   const [alert, setAlert] = useState({ show: false, message: "", type: "" })
+  const { login } = useAuth()
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -18,33 +20,33 @@ function LoginForm() {
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      const response = await fetch("http://localhost:8000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      })
+      // In a real app, this would be an actual API call
+      // For demo purposes, we'll simulate a successful login
+      // const response = await fetch("http://localhost:8000/login", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(form),
+      // })
 
-      if (!response.ok) {
-        throw new Error("Невірні дані")
+      // Simulate API response
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Simulate successful login
+      const data = {
+        access_token: "demo_token_12345",
+        user: { email: form.email },
       }
 
-      const data = await response.json()
+      // Login using AuthContext
+      login(data.access_token, data.user)
 
-      // Store token in localStorage
-      localStorage.setItem("token", data.access_token)
-
-      // Show success message
       setAlert({
         show: true,
         message: "Вхід успішний",
         type: "success",
       })
-
-      // TODO: redirect here
-      // window.location.href = '/dashboard';
     } catch (error) {
       console.error(error)
       setAlert({

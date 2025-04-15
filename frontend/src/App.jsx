@@ -1,50 +1,36 @@
-"use client"
-
-import { useState } from "react"
-import LoginForm from "./components/LoginForm"
-import RegisterForm from "./components/RegisterForm"
-import ThemeToggle from "./components/ThemeToggle"
-import { ThemeProvider } from "./context/ThemeContext"
+import { Routes, Route, Navigate } from "react-router-dom"
+import AuthPage from "./pages/AuthPage"
+import DashboardLayout from "./layouts/DashboardLayout"
+import DashboardHome from "./pages/DashboardHome"
+import UploadFile from "./pages/UploadFile"
+import Analytics from "./pages/Analytics"
+import ExportReport from "./pages/ExportReport"
+import Settings from "./pages/Settings"
 
 function App() {
-  const [activeTab, setActiveTab] = useState("login")
+  // In a real app, you would check authentication status here
+  // For demo purposes, we'll assume the user is authenticated if there's a token
+  const isAuthenticated = localStorage.getItem("token") !== null
 
   return (
-    <ThemeProvider>
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <div className="header-top">
-              <h1 className="auth-title">Авторизація</h1>
-              <ThemeToggle />
-            </div>
-            <p className="auth-description">Увійдіть або створіть новий обліковий запис</p>
-          </div>
-          <div className="auth-content">
-            <div className="tabs">
-              <div className="tabs-list">
-                <button
-                  className={`tab-trigger ${activeTab === "login" ? "active" : ""}`}
-                  onClick={() => setActiveTab("login")}
-                >
-                  Вхід
-                </button>
-                <button
-                  className={`tab-trigger ${activeTab === "register" ? "active" : ""}`}
-                  onClick={() => setActiveTab("register")}
-                >
-                  Реєстрація
-                </button>
-              </div>
-              {activeTab === "login" ? <LoginForm /> : <RegisterForm />}
-            </div>
-          </div>
-          <div className="auth-footer">
-            <p>© 2024 Онлайн Бібліотека. Всі права захищені.</p>
-          </div>
-        </div>
-      </div>
-    </ThemeProvider>
+    <Routes>
+      <Route path="/auth" element={<AuthPage />} />
+
+      {/* Protected dashboard routes */}
+      <Route path="/dashboard" element={isAuthenticated ? <DashboardLayout /> : <Navigate to="/auth" replace />}>
+        <Route index element={<DashboardHome />} />
+        <Route path="upload" element={<UploadFile />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="export" element={<ExportReport />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
+
+      {/* Redirect root to dashboard or auth based on authentication */}
+      <Route
+        path="/"
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />}
+      />
+    </Routes>
   )
 }
 
