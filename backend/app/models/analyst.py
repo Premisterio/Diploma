@@ -1,10 +1,14 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
-class Analyst(Base):  # Renamed class
-    __tablename__ = "analysts"  # Updated table name
+class Analyst(Base):
+    __tablename__ = "analysts"
 
-    id = Column(Integer, primary_key=True, index=True) # PK
-    analyst_name = Column(String, index=True, nullable=False) # Required
-    email = Column(String, unique=True, index=True, nullable=False)  # Required 
-    hashed_password = Column(String, nullable=False) # Required
+    id = Column(Integer, primary_key=True, index=True)
+    analyst_name = Column(String, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    
+    reports = relationship("AnalysisReport", back_populates="analyst")
+    data_files = relationship("DataFile", back_populates="analyst")
