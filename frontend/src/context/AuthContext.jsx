@@ -1,73 +1,64 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { authAPI } from "../services/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [refreshToken, setRefreshToken] = useState(localStorage.getItem("refreshToken"));
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Check if token is valid on initial load
+  // Check if user is authenticated on initial load
   useEffect(() => {
-    const verifyToken = async () => {
-      if (token) {
-        try {
-          const response = await fetch("http://localhost:8000/api/secure-endpoint", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setUser(data.user);
-          } else {
-            // Token is invalid, try to refresh
-            await refreshUserToken();
-          }
-        } catch (error) {
-          console.error("Error verifying token:", error);
-          logout();
-        }
+    const verifyAuth = async () => {
+      const token = localStorage.getItem("token");
+      const refreshToken = localStorage.getItem("refreshToken");
+      
+      if (!token || !refreshToken) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+      
+      try {
+        // Try to get user info with current token
+        const response = await authAPI.getUserInfo();
+        
+        if (response.success) {
+          setUser(response.data.user);
+        } else {
+          // If token is invalid, try to refresh
+          await refreshUserToken();
+        }
+      } catch (err) {
+        console.error("Auth verification error:", err);
+        logout();
+      } finally {
+        setLoading(false);
+      }
     };
 
-    verifyToken();
+    verifyAuth();
   }, []);
 
   const refreshUserToken = async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
     if (!refreshToken) {
       logout();
       return false;
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/refresh", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${refreshToken}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("token", data.access_token);
-        setToken(data.access_token);
+      const response = await authAPI.refreshToken(refreshToken);
+      
+      if (response.success) {
+        localStorage.setItem("token", response.data.access_token);
         
-        // Verify the new token
-        const userResponse = await fetch("http://localhost:8000/api/secure-endpoint", {
-          headers: {
-            Authorization: `Bearer ${data.access_token}`,
-          },
-        });
-        
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          setUser(userData.user);
+        // Get user info with new token
+        const userResponse = await authAPI.getUserInfo();
+        if (userResponse.success) {
+          setUser(userResponse.data.user);
           return true;
         }
       }
@@ -75,72 +66,50 @@ export function AuthProvider({ children }) {
       // If refresh failed, logout
       logout();
       return false;
-    } catch (error) {
-      console.error("Error refreshing token:", error);
+    } catch (err) {
+      console.error("Token refresh error:", err);
       logout();
       return false;
     }
   };
 
   const login = async (email, password) => {
+    setError(null);
     try {
-      const response = await fetch("http://localhost:8000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Invalid credentials");
+      const response = await authAPI.login(email, password);
+      
+      if (response.success) {
+        const { access_token, refresh_token } = response.data;
+        
+        localStorage.setItem("token", access_token);
+        localStorage.setItem("refreshToken", refresh_token);
+        
+        // Get user info
+        const userResponse = await authAPI.getUserInfo();
+        if (userResponse.success) {
+          setUser(userResponse.data.user);
+          navigate("/dashboard");
+          return true;
+        }
+      } else {
+        setError(response.error);
+        return false;
       }
-
-      const data = await response.json();
-      localStorage.setItem("token", data.access_token);
-      localStorage.setItem("refreshToken", data.refresh_token);
-      
-      setToken(data.access_token);
-      setRefreshToken(data.refresh_token);
-      
-      // Get user info
-      const userResponse = await fetch("http://localhost:8000/api/secure-endpoint", {
-        headers: {
-          Authorization: `Bearer ${data.access_token}`,
-        },
-      });
-      
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        setUser(userData.user);
-      }
-      
-      navigate("/dashboard");
-      return true;
-    } catch (error) {
-      console.error("Login error:", error);
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Authentication failed. Please try again.");
       return false;
     }
   };
 
   const register = async (name, email, password) => {
+    setError(null);
     try {
-      const response = await fetch("http://localhost:8000/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ analyst_name: name, email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Registration failed");
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Registration error:", error);
+      const response = await authAPI.register(name, email, password);
+      return response.success;
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError("Registration failed. Please try again.");
       return false;
     }
   };
@@ -148,8 +117,6 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
-    setToken(null);
-    setRefreshToken(null);
     setUser(null);
     navigate("/auth");
   };
@@ -159,6 +126,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         loading,
+        error,
         login,
         logout,
         register,
@@ -171,4 +139,10 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

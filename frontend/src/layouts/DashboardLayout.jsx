@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom"
 import { useTheme } from "../context/ThemeContext"

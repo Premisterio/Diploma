@@ -7,13 +7,19 @@ import UploadFile from "./pages/UploadFile";
 import Analytics from "./pages/Analytics";
 import ExportReport from "./pages/ExportReport";
 import Settings from "./pages/Settings";
+import LoadingSpinner from "./components/LoadingSpinner";
+
 
 function App() {
   const { isAuthenticated, loading } = useAuth();
 
   // Show loading state
   if (loading) {
-    return <div className="loading-container">Loading...</div>;
+    return (
+      <div className="full-page-loading">
+        <LoadingSpinner size="large" text="Завантаження додатку..." />
+      </div>
+    );
   }
 
   return (
@@ -46,6 +52,20 @@ function App() {
           )
         }
       />
+      
+      {/* 404 Not Found - Catch all route */}
+      <Route path="*" element={
+        <div className="not-found">
+          <h1>404</h1>
+          <p>Сторінку не знайдено</p>
+          <button 
+            className="form-button" 
+            onClick={() => window.history.back()}
+          >
+            Повернутися назад
+          </button>
+        </div>
+      } />
     </Routes>
   );
 }
