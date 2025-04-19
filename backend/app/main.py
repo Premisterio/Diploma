@@ -19,7 +19,7 @@ app.include_router(analysis_routes.router, prefix="/api/analysis", tags=["analys
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173"],  # Vite's default port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

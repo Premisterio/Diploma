@@ -1,63 +1,45 @@
-"use client"
-
-import { useState } from "react"
-import Alert from "./Alert"
-import { useAuth } from "../context/AuthContext"
+import { useState } from "react";
+import Alert from "./Alert";
+import { useAuth } from "../context/AuthContext";
 
 function LoginForm() {
-  const [form, setForm] = useState({ email: "", password: "" })
-  const [isLoading, setIsLoading] = useState(false)
-  const [alert, setAlert] = useState({ show: false, message: "", type: "" })
-  const { login } = useAuth()
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setForm((prevForm) => ({ ...prevForm, [name]: value }))
-  }
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [alert, setAlert] = useState({ show: false, message: "", type: "" });
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      // In a real app, this would be an actual API call
-      // For demo purposes, we'll simulate a successful login
-      // const response = await fetch("http://localhost:8000/login", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(form),
-      // })
-
-      // Simulate API response
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Simulate successful login
-      const data = {
-        access_token: "demo_token_12345",
-        user: { email: form.email },
+      const success = await login(email, password);
+      
+      if (success) {
+        setAlert({
+          show: true,
+          message: "Вхід успішний",
+          type: "success",
+        });
+      } else {
+        setAlert({
+          show: true,
+          message: "Невірні дані авторизації",
+          type: "error",
+        });
       }
-
-      // Login using AuthContext
-      login(data.access_token, data.user)
-
-      setAlert({
-        show: true,
-        message: "Вхід успішний",
-        type: "success",
-      })
     } catch (error) {
-      console.error(error)
+      console.error(error);
       setAlert({
         show: true,
-        message: "Невірні дані",
+        message: "Помилка підключення до сервера",
         type: "error",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form className="form" onSubmit={handleSubmit}>
@@ -67,12 +49,11 @@ function LoginForm() {
         </label>
         <input
           id="email"
-          name="email"
           type="email"
           className="form-input"
           placeholder="name@example.com"
-          value={form.email}
-          onChange={handleChange}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
       </div>
@@ -88,12 +69,11 @@ function LoginForm() {
         </div>
         <input
           id="password"
-          name="password"
           type="password"
           className="form-input"
           placeholder="••••••••"
-          value={form.password}
-          onChange={handleChange}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
       </div>
@@ -104,7 +84,7 @@ function LoginForm() {
         {isLoading ? "Завантаження..." : "Увійти"}
       </button>
     </form>
-  )
+  );
 }
 
-export default LoginForm
+export default LoginForm;

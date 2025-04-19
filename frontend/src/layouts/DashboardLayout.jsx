@@ -67,7 +67,7 @@ function DashboardLayout() {
         <div className="sidebar-user">
           <div className="user-avatar">{user?.email?.charAt(0).toUpperCase() || "U"}</div>
           <div className="user-info">
-            <p className="user-name">{user?.email || "Користувач"}</p>
+            <p className="user-name">{user?.name || "Користувач"}</p>
             <p className="user-role">Аналітик</p>
           </div>
         </div>
