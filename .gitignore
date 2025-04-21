@@ -47,5 +47,5 @@ docker-compose.override.yml
 .cache/
 coverage/
 .next/
-
+users_in_db.txt
 backend/uploads
