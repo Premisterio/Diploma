@@ -1,10 +1,34 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Alert from "../components/Alert"
+import { fileAPI } from "../services/api"
 
 function UploadFile() {
   const [file, setFile] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [alert, setAlert] = useState({ show: false, message: "", type: "" })
+  const [uploadedFiles, setUploadedFiles] = useState([])
+  const [isLoadingFiles, setIsLoadingFiles] = useState(false)
+
+  // Fetch uploaded files when component mounts
+  useEffect(() => {
+    fetchUploadedFiles()
+  }, [])
+
+  const fetchUploadedFiles = async () => {
+    setIsLoadingFiles(true)
+    try {
+      const response = await fileAPI.getUploadedFiles()
+      if (response.success) {
+        setUploadedFiles(response.data)
+      } else {
+        console.error("Failed to fetch files:", response.error)
+      }
+    } catch (error) {
+      console.error("Error fetching files:", error)
+    } finally {
+      setIsLoadingFiles(false)
+    }
+  }
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0]
@@ -23,26 +47,42 @@ function UploadFile() {
       return
     }
 
+    // Check if file is JSON
+    if (!file.name.endsWith('.json')) {
+      setAlert({
+        show: true,
+        message: "Підтримуються лише файли формату JSON",
+        type: "error",
+      })
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      // Simulate file upload
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      setAlert({
-        show: true,
-        message: `Файл "${file.name}" успішно завантажено`,
-        type: "success",
-      })
-
-      // Reset file input
-      setFile(null)
-      e.target.reset()
+      const response = await fileAPI.uploadFile(file)
+      
+      if (response.success) {
+        setAlert({
+          show: true,
+          message: `Файл "${file.name}" успішно завантажено`,
+          type: "success",
+        })
+        
+        // Refresh the file list
+        fetchUploadedFiles()
+        
+        // Reset file input
+        setFile(null)
+        e.target.reset()
+      } else {
+        throw new Error(response.error)
+      }
     } catch (error) {
       console.error(error)
       setAlert({
         show: true,
-        message: "Помилка при завантаженні файлу",
+        message: `Помилка при завантаженні файлу: ${error.message}`,
         type: "error",
       })
     } finally {
@@ -50,11 +90,17 @@ function UploadFile() {
     }
   }
 
+  // Format date string to local format
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('uk-UA')
+  }
+
   return (
     <div className="upload-file">
       <div className="dashboard-card">
         <h2 className="card-title">Завантажити файл</h2>
-        <p className="card-description">Завантажте файл з даними користувачів у форматі CSV або JSON.</p>
+        <p className="card-description">Завантажте файл з даними користувачів у форматі JSON.</p>
 
         <form onSubmit={handleSubmit} className="upload-form">
           <div className="file-upload-container">
@@ -64,7 +110,7 @@ function UploadFile() {
             <input
               id="file-upload"
               type="file"
-              accept=".csv,.json"
+              accept=".json"
               onChange={handleFileChange}
               className="file-upload-input"
             />
@@ -79,7 +125,7 @@ function UploadFile() {
                 <strong>Розмір:</strong> {(file.size / 1024).toFixed(2)} KB
               </p>
               <p>
-                <strong>Тип:</strong> {file.type || "Невідомий"}
+                <strong>Тип:</strong> {file.type || "application/json"}
               </p>
             </div>
           )}
@@ -95,38 +141,32 @@ function UploadFile() {
       <div className="dashboard-card">
         <h3 className="card-title">Останні завантажені файли</h3>
         <div className="files-table-container">
-          <table className="files-table">
-            <thead>
-              <tr>
-                <th>Назва файлу</th>
-                <th>Дата завантаження</th>
-                <th>Статус</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>users_activity_jan.csv</td>
-                <td>15.01.2024</td>
-                <td>
-                  <span className="status success">Оброблено</span>
-                </td>
-              </tr>
-              <tr>
-                <td>library_stats_q4.json</td>
-                <td>28.12.2023</td>
-                <td>
-                  <span className="status success">Оброблено</span>
-                </td>
-              </tr>
-              <tr>
-                <td>user_feedback.csv</td>
-                <td>15.12.2023</td>
-                <td>
-                  <span className="status error">Помилка</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          {isLoadingFiles ? (
+            <p>Завантаження списку файлів...</p>
+          ) : uploadedFiles.length === 0 ? (
+            <p>Немає завантажених файлів</p>
+          ) : (
+            <table className="files-table">
+              <thead>
+                <tr>
+                  <th>Назва файлу</th>
+                  <th>Дата завантаження</th>
+                  <th>Статус</th>
+                </tr>
+              </thead>
+              <tbody>
+                {uploadedFiles.map((file) => (
+                  <tr key={file.id}>
+                    <td>{file.filename}</td>
+                    <td>{formatDate(file.upload_date)}</td>
+                    <td>
+                      <span className="status success">Готовий до аналізу</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

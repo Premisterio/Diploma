@@ -131,7 +131,7 @@ export const fileAPI = {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await axiosInstance.post('/upload', formData, {
+      const response = await axiosInstance.post('/analysis/upload-data', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -147,7 +147,7 @@ export const fileAPI = {
   
   getUploadedFiles: async () => {
     try {
-      const response = await axiosInstance.get('/files');
+      const response = await axiosInstance.get('/analysis/data-files');
       return { success: true, data: response.data };
     } catch (error) {
       return { 
@@ -158,14 +158,12 @@ export const fileAPI = {
   }
 };
 
-// Report API calls
-export const reportAPI = {
-  generateReport: async (reportType, dateRange, format) => {
+// Analysis API calls
+export const analysisAPI = {
+  generateReport: async (fileId, reportName) => {
     try {
-      const response = await axiosInstance.post('/reports/generate', {
-        report_type: reportType,
-        date_range: dateRange,
-        format
+      const response = await axiosInstance.post(`/analysis/analyze?file_id=${fileId}`, {
+        report_name: reportName
       });
       return { success: true, data: response.data };
     } catch (error) {
@@ -178,7 +176,7 @@ export const reportAPI = {
   
   getReports: async () => {
     try {
-      const response = await axiosInstance.get('/reports');
+      const response = await axiosInstance.get('/analysis/reports');
       return { success: true, data: response.data };
     } catch (error) {
       return { 
@@ -186,31 +184,76 @@ export const reportAPI = {
         error: error.response?.data?.detail || 'Failed to get reports' 
       };
     }
-  }
-};
+  },
 
-// Settings API calls
-export const settingsAPI = {
-  updateSettings: async (settings) => {
+  getReportById: async (reportId) => {
     try {
-      const response = await axiosInstance.post('/settings', settings);
+      const response = await axiosInstance.get(`/analysis/reports/${reportId}`);
       return { success: true, data: response.data };
     } catch (error) {
       return { 
         success: false, 
-        error: error.response?.data?.detail || 'Failed to update settings' 
+        error: error.response?.data?.detail || 'Failed to get report details' 
       };
     }
   },
-  
-  getSettings: async () => {
+
+  getUsagePatterns: async (fileId) => {
     try {
-      const response = await axiosInstance.get('/settings');
+      const response = await axiosInstance.get(`/analysis/analysis/usage-patterns?file_id=${fileId}`);
       return { success: true, data: response.data };
     } catch (error) {
       return { 
         success: false, 
-        error: error.response?.data?.detail || 'Failed to get settings' 
+        error: error.response?.data?.detail || 'Failed to get usage patterns' 
+      };
+    }
+  },
+
+  getContentPerformance: async (fileId) => {
+    try {
+      const response = await axiosInstance.get(`/analysis/analysis/content-performance?file_id=${fileId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to get content performance' 
+      };
+    }
+  },
+
+  getUserSegments: async (fileId) => {
+    try {
+      const response = await axiosInstance.get(`/analysis/analysis/user-segments?file_id=${fileId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to get user segments' 
+      };
+    }
+  },
+
+  getSearchPatterns: async (fileId) => {
+    try {
+      const response = await axiosInstance.get(`/analysis/analysis/search-patterns?file_id=${fileId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to get search patterns' 
+      };
+    }
+  },
+
+  getRetentionMetrics: async (fileId) => {
+    try {
+      const response = await axiosInstance.get(`/analysis/analysis/retention?file_id=${fileId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to get retention metrics' 
       };
     }
   }
