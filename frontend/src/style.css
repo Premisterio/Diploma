@@ -1397,3 +1397,471 @@ body {
     height: 3rem;
   }
 }
+/* No data message */
+.no-data-message {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+/* New Dashboard Home Styles */
+.dashboard-home {
+  position: relative;
+}
+
+.refresh-button {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 10%;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.refresh-button:hover {
+  transform: scale(1.05);
+  background-color: var(--primary-hover);
+}
+
+.refresh-button:disabled {
+  background-color: var(--primary-disabled);
+  cursor: not-allowed;
+}
+
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.report-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: var(--card-background);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.report-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.report-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--primary-light);
+  border-radius: 0.5rem;
+  margin-right: 1rem;
+  color: var(--primary-color);
+}
+
+.report-content {
+  flex: 1;
+}
+
+.report-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+
+.report-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.report-actions {
+  margin-left: auto;
+}
+
+.report-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.report-link:hover {
+  background-color: var(--primary-light);
+}
+
+.activity-detail {
+  font-style: italic;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+/* Analytics specific styles */
+.analytics-page {
+  padding: 1rem;
+}
+
+.dashboard-card {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-title {
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.card-description {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.analytics-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.control-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.control-group select,
+.control-group input {
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-background);
+  color: var(--text-primary);
+}
+
+.control-button-group {
+  display: flex;
+  align-items: flex-end;
+}
+
+.analyze-button {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.analyze-button:hover {
+  background-color: var(--primary-hover);
+}
+
+.analyze-button:disabled {
+  background-color: var(--primary-disabled);
+  cursor: not-allowed;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.analytics-tabs {
+  display: flex;
+  background-color: var(--tabs-background);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.tab-button.active {
+  background-color: var(--tab-active-background);
+  color: var(--tab-active-color);
+  box-shadow: 0 0 8px var(--shadow-color);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.stats-highlights {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.stat-highlight-item {
+  background-color: var(--background);
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.stat-item {
+  background-color: var(--background);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.stat-item h4 {
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.stat-item ul {
+  list-style: none;
+}
+
+.stat-item li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.big-stat {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  display: flex;
+  align-items: baseline;
+}
+
+.stat-percentage {
+  font-size: 1rem;
+  margin-left: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.stat-unit {
+  font-size: 1rem;
+  margin-left: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.ranking-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rank {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  border-radius: 50%;
+  margin-right: 1rem;
+  font-weight: 600;
+}
+
+.name {
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.value {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.ratings-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rating-bar {
+  display: flex;
+  align-items: center;
+}
+
+.genre-name {
+  width: 100px;
+  margin-right: 1rem;
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+.rating-bar-container {
+  flex: 1;
+  height: 12px;
+  background-color: var(--background);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.rating-bar-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+}
+
+.rating-value {
+  margin-left: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.heat-map {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.heat-map-row {
+  display: flex;
+  align-items: center;
+}
+
+.heat-map-cells {
+  display: flex;
+  flex: 1;
+  height: 24px;
+}
+
+.heat-map-cell {
+  flex: 1;
+  height: 100%;
+  border-right: 1px solid var(--background);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-highlights {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .analytics-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-container {
+    grid-template-columns: 1fr;
+  }
+
+  .analyze-button {
+    width: 100%;
+  }
+
+  .report-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .report-icon {
+    margin-bottom: 0.5rem;
+  }
+
+  .report-actions {
+    margin-left: 0;
+    margin-top: 0.75rem;
+    align-self: flex-end;
+  }
+
+  .refresh-button {
+    bottom: 1rem;
+    right: 1rem;
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-highlights {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-label {
+    font-size: 0.7rem;
+    transform: rotate(-45deg);
+    transform-origin: top left;
+  }
+
+  .legend-item {
+    font-size: 0.7rem;
+  }
+}
