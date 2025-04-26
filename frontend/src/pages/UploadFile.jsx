@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Alert from "../components/Alert"
 import { fileAPI } from "../services/api"
 
@@ -8,6 +8,8 @@ function UploadFile() {
   const [alert, setAlert] = useState({ show: false, message: "", type: "" })
   const [uploadedFiles, setUploadedFiles] = useState([])
   const [isLoadingFiles, setIsLoadingFiles] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef(null)
 
   // Fetch uploaded files when component mounts
   useEffect(() => {
@@ -32,7 +34,58 @@ function UploadFile() {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0]
+    if (selectedFile) {
+      validateAndSetFile(selectedFile)
+    }
+  }
+
+  const validateAndSetFile = (selectedFile) => {
+    // Check if file is JSON
+    if (!selectedFile.name.endsWith('.json')) {
+      setAlert({
+        show: true,
+        message: "Підтримуються лише файли формату JSON",
+        type: "error",
+      })
+      return false
+    }
+    
     setFile(selectedFile)
+    setAlert({ show: false, message: "", type: "" })
+    return true
+  }
+
+  // Drag and drop handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    
+    const droppedFile = e.dataTransfer.files[0]
+    if (droppedFile) {
+      validateAndSetFile(droppedFile)
+    }
+  }
+
+  const handleDropAreaClick = () => {
+    fileInputRef.current.click()
   }
 
   const handleSubmit = async (e) => {
@@ -42,16 +95,6 @@ function UploadFile() {
       setAlert({
         show: true,
         message: "Будь ласка, виберіть файл",
-        type: "error",
-      })
-      return
-    }
-
-    // Check if file is JSON
-    if (!file.name.endsWith('.json')) {
-      setAlert({
-        show: true,
-        message: "Підтримуються лише файли формату JSON",
         type: "error",
       })
       return
@@ -74,7 +117,9 @@ function UploadFile() {
         
         // Reset file input
         setFile(null)
-        e.target.reset()
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""
+        }
       } else {
         throw new Error(response.error)
       }
@@ -99,15 +144,35 @@ function UploadFile() {
   return (
     <div className="upload-file">
       <div className="dashboard-card">
-        <h2 className="card-title">Завантажити файл</h2>
-        <p className="card-description">Завантажте файл з даними користувачів у форматі JSON.</p>
+        <h2 className="card-title">Завантаження</h2>
+        <p className="card-description">Завантажте файл даних користувачів для подальшого аналізу.</p>
 
         <form onSubmit={handleSubmit} className="upload-form">
-          <div className="file-upload-container">
-            <label htmlFor="file-upload" className="file-upload-label">
-              {file ? file.name : "Виберіть файл або перетягніть його сюди"}
-            </label>
+          <div 
+            className={`file-upload-container ${isDragging ? 'dragging' : ''}`}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={handleDropAreaClick}
+          >
+            <div className="file-upload-content">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" className="upload-icon" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+              </svg>
+              <p className="upload-text">
+                {file 
+                  ? file.name 
+                  : isDragging 
+                    ? "Відпустіть файл тут" 
+                    : "Перетягніть JSON файл сюди або клацніть для вибору"
+                }
+              </p>
+              <p className="upload-hint">Підтримується лише формат JSON</p>
+            </div>
             <input
+              ref={fileInputRef}
               id="file-upload"
               type="file"
               accept=".json"

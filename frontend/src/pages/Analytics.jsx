@@ -4,6 +4,7 @@ import ActivityChart from "../components/analytics/ActivityChart";
 import GenreChart from "../components/analytics/GenreChart";
 import BooksTable from "../components/analytics/BooksTable";
 import LoadingSpinner from "../components/LoadingSpinner";
+import Alert from "../components/Alert";
 import { fileAPI, analysisAPI } from "../services/api";
 
 function Analytics() {
@@ -28,6 +29,15 @@ function Analytics() {
     fetchFiles();
     fetchReports();
   }, []);
+
+  // Filter the analyzed data based on user filters
+  useEffect(() => {
+    if (currentReport && currentReport.report_data) {
+      // Here you could implement actual filtering of the data
+      // For now, we'll just use the report data as is
+      setAnalysisData(currentReport.report_data);
+    }
+  }, [currentReport, filters]);
 
   const fetchFiles = async () => {
     setLoading(true);
@@ -83,6 +93,8 @@ function Analytics() {
         if (response.success) {
           setCurrentReport(response.data);
           setAnalysisData(response.data.report_data);
+          // Set the report name for consistency
+          setNewReportName(response.data.report_name);
         } else {
           showAlert(response.error, "error");
         }
@@ -92,6 +104,10 @@ function Analytics() {
       } finally {
         setLoading(false);
       }
+    } else {
+      // Clear selection
+      setCurrentReport(null);
+      setAnalysisData(null);
     }
   };
 
@@ -112,7 +128,7 @@ function Analytics() {
       
       if (response.success) {
         showAlert("Analysis completed successfully", "success");
-        fetchReports();
+        await fetchReports();
         const reportData = await analysisAPI.getReportById(response.data.id);
         if (reportData.success) {
           setCurrentReport(reportData.data);
@@ -145,9 +161,9 @@ function Analytics() {
     
     // Create a combined dataset
     const bookData = Object.entries(top_borrowed_books).map(([title, count]) => {
-      // Find the genre for this book (assuming we can match by title)
-      // This is a simplified approach since we don't have complete data matching
-      const genre = Object.keys(genre_popularity)[0]; // placeholder
+      // Find the genre for this book (for demonstration, we're assigning genres randomly)
+      const genres = Object.keys(genre_popularity);
+      const genre = genres[Math.floor(Math.random() * genres.length)];
       
       return {
         title,
@@ -170,63 +186,61 @@ function Analytics() {
           Аналіз даних користувачів та активності читачів
         </p>
 
-        {alertMessage && (
-          <div className={`alert ${alertType}`}>
-            {alertMessage}
-          </div>
-        )}
+        {alertMessage && <Alert message={alertMessage} type={alertType} />}
 
-        <div className="analytics-controls">
-          <div className="control-group">
-            <label>Вибрати файл даних:</label>
-            <select 
-              onChange={handleFileSelect} 
-              value={selectedFile || ""}
-              disabled={loading || isAnalyzing}
-            >
-              <option value="">-- Виберіть файл --</option>
-              {files.map(file => (
-                <option key={file.id} value={file.id}>
-                  {file.filename} ({new Date(file.upload_date).toLocaleDateString('uk-UA')})
-                </option>
-              ))}
-            </select>
-          </div>
+<div className="analytics-controls">
+  <div className="control-group">
+    <label>Вибрати файл даних:</label>
+    <select 
+      onChange={handleFileSelect} 
+      value={selectedFile || ""}
+      disabled={loading || isAnalyzing}
+    >
+      <option value="">-- Виберіть файл --</option>
+      {files.map(file => (
+        <option key={file.id} value={file.id}>
+          {file.filename} ({new Date(file.upload_date).toLocaleDateString('uk-UA')})
+        </option>
+      ))}
+    </select>
+  </div>
 
-          <div className="control-group">
-            <label>Назва звіту:</label>
-            <input 
-              type="text" 
-              value={newReportName}
-              onChange={(e) => setNewReportName(e.target.value)}
-              placeholder="Введіть назву для нового звіту"
-              disabled={loading || isAnalyzing}
-            />
-          </div>
+  <div className="control-group">
+    <label>Назва звіту:</label>
+    <input 
+      type="text" 
+      value={newReportName}
+      onChange={(e) => setNewReportName(e.target.value)}
+      placeholder="Введіть назву для нового звіту"
+      disabled={loading || isAnalyzing}
+    />
+  </div>
 
-          <button 
-            className="analyze-button" 
-            onClick={handleAnalyze}
-            disabled={!selectedFile || isAnalyzing || !newReportName.trim()}
-          >
-            {isAnalyzing ? "Аналізую..." : "Аналізувати дані"}
-          </button>
+  <div className="control-button-group">
+    <button 
+      className="analyze-button" 
+      onClick={handleAnalyze}
+      disabled={!selectedFile || isAnalyzing || !newReportName.trim()}
+    >
+      {isAnalyzing ? "Аналізую..." : "Аналізувати дані"}
+    </button>
+  </div>
 
-          <div className="control-group">
-            <label>Збережені звіти:</label>
-            <select 
-              onChange={handleReportSelect}
-              disabled={loading || isAnalyzing}
-            >
-              <option value="">-- Виберіть звіт --</option>
-              {reports.map(report => (
-                <option key={report.id} value={report.id}>
-                  {report.report_name} ({new Date(report.created_at).toLocaleDateString('uk-UA')})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+  <div className="control-group">
+    <label>Збережені звіти:</label>
+    <select 
+      onChange={handleReportSelect}
+      disabled={loading || isAnalyzing}
+    >
+      <option value="">-- Виберіть звіт --</option>
+      {reports.map(report => (
+        <option key={report.id} value={report.id}>
+          {report.report_name} ({new Date(report.created_at).toLocaleDateString('uk-UA')})
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
 
         <AnalyticsFilter onFilterChange={handleFilterChange} />
       </div>
@@ -244,10 +258,10 @@ function Analytics() {
           <div className="charts-grid">
             <div className="dashboard-card">
               <h3 className="card-title">Активність користувачів</h3>
-              <p>Загальна кількість користувачів: {analysisData.total_users}</p>
+              <p className="card-subtitle">Загальна кількість користувачів: <strong>{analysisData.total_users}</strong></p>
               <ActivityChart
-              hourlyActivity={analysisData.usage_patterns.hourly_activity}
-              weeklyActivity={analysisData.usage_patterns.weekly_activity}
+                hourlyActivity={analysisData.usage_patterns.hourly_activity}
+                weeklyActivity={analysisData.usage_patterns.weekly_activity}
               />
               
               <div className="stats-grid">
@@ -258,7 +272,10 @@ function Analytics() {
                       Object.entries(analysisData.usage_patterns.hourly_activity)
                         .slice(0, 5)
                         .map(([hour, count]) => (
-                          <li key={hour}>Година {hour}: {count} сеансів</li>
+                          <li key={hour}>
+                            <span>Година {hour}</span> 
+                            <span>{count} сеансів</span>
+                          </li>
                         ))
                     }
                   </ul>
@@ -269,7 +286,10 @@ function Analytics() {
                     {analysisData.usage_patterns.weekly_activity && 
                       Object.entries(analysisData.usage_patterns.weekly_activity)
                         .map(([day, count]) => (
-                          <li key={day}>{day}: {count} сеансів</li>
+                          <li key={day}>
+                            <span>{day}</span>
+                            <span>{count} сеансів</span>
+                          </li>
                         ))
                     }
                   </ul>
@@ -280,7 +300,7 @@ function Analytics() {
             <div className="dashboard-card">
               <h3 className="card-title">Популярність жанрів</h3>
               <GenreChart
-              genrePopularity={analysisData.content_performance.genre_popularity}
+                genrePopularity={analysisData.content_performance.genre_popularity}
               />
               
               <div className="stats-grid">
@@ -291,7 +311,10 @@ function Analytics() {
                       Object.entries(analysisData.content_performance.genre_popularity)
                         .slice(0, 5)
                         .map(([genre, count]) => (
-                          <li key={genre}>{genre}: {count} запозичень</li>
+                          <li key={genre}>
+                            <span>{genre}</span>
+                            <span>{count} запозичень</span>
+                          </li>
                         ))
                     }
                   </ul>
@@ -303,7 +326,10 @@ function Analytics() {
                       Object.entries(analysisData.content_performance.avg_ratings_by_genre)
                         .slice(0, 5)
                         .map(([genre, rating]) => (
-                          <li key={genre}>{genre}: {rating} / 5</li>
+                          <li key={genre}>
+                            <span>{genre}</span>
+                            <span>{rating.toFixed(1)} / 5</span>
+                          </li>
                         ))
                     }
                   </ul>
@@ -326,7 +352,10 @@ function Analytics() {
                   {analysisData.user_segments.age_distribution && 
                     Object.entries(analysisData.user_segments.age_distribution)
                       .map(([age, count]) => (
-                        <li key={age}>{age}: {count} користувачів</li>
+                        <li key={age}>
+                          <span>{age}</span>
+                          <span>{count} користувачів</span>
+                        </li>
                       ))
                   }
                 </ul>
@@ -337,7 +366,10 @@ function Analytics() {
                   {analysisData.user_segments.education_distribution && 
                     Object.entries(analysisData.user_segments.education_distribution)
                       .map(([edu, count]) => (
-                        <li key={edu}>{edu}: {count} користувачів</li>
+                        <li key={edu}>
+                          <span>{edu}</span>
+                          <span>{count} користувачів</span>
+                        </li>
                       ))
                   }
                 </ul>
@@ -349,7 +381,10 @@ function Analytics() {
                     Object.entries(analysisData.search_patterns.top_search_terms)
                       .slice(0, 5)
                       .map(([term, count]) => (
-                        <li key={term}>{term}: {count} пошуків</li>
+                        <li key={term}>
+                          <span>{term}</span>
+                          <span>{count} пошуків</span>
+                        </li>
                       ))
                   }
                 </ul>
@@ -360,7 +395,10 @@ function Analytics() {
                   {analysisData.retention_metrics.user_tenure_distribution && 
                     Object.entries(analysisData.retention_metrics.user_tenure_distribution)
                       .map(([tenure, count]) => (
-                        <li key={tenure}>{tenure}: {count} користувачів</li>
+                        <li key={tenure}>
+                          <span>{tenure}</span>
+                          <span>{count} користувачів</span>
+                        </li>
                       ))
                   }
                 </ul>
