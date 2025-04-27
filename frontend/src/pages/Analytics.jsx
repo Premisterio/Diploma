@@ -12,12 +12,7 @@ function Analytics() {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [reports, setReports] = useState([]);
-  const [currentReport, setCurrentReport] = useState(null);
-  const [filters, setFilters] = useState({
-    dateRange: "30days",
-    activityType: "all",
-    genre: "all",
-  });
+  const [setCurrentReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisData, setAnalysisData] = useState(null);
@@ -31,20 +26,6 @@ function Analytics() {
     fetchFiles();
     fetchReports();
   }, []);
-
-  // Filter the analyzed data based on user filters
-  useEffect(() => {
-    if (currentReport && currentReport.report_data) {
-      const filteredData = applyFilters(currentReport.report_data, filters);
-      setAnalysisData(filteredData);
-    }
-  }, [currentReport, filters]);
-
-  const applyFilters = (data, filters) => {
-    const filteredData = JSON.parse(JSON.stringify(data));
-    // TODO: apply dateRange, activityType, genre filters to filteredData
-    return filteredData;
-  };
 
   const fetchFiles = async () => {
     setLoading(true);

@@ -12,3 +12,4 @@ class Analyst(Base):
     
     reports = relationship("AnalysisReport", back_populates="analyst")
     data_files = relationship("DataFile", back_populates="analyst")
+    exports = relationship("ReportExport", back_populates="analyst")

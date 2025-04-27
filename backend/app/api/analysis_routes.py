@@ -1,8 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+import os
+import json
+import pandas as pd
+import tempfile 
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from sqlalchemy.orm import Session
+from app.models.library_data import DataFile, AnalysisReport, ReportExport
 from app.core.database import get_db
-from app.models.library_data import DataFile, AnalysisReport
 from app.core.auth import get_current_analyst
+from app.utils.export_report import export_to_pdf, export_to_excel
+from app.core.file_upload import save_upload_file
+from app.models.analyst import Analyst
+from typing import List, Any
+from fastapi.responses import FileResponse
+from datetime import datetime
+
 from app.services.library_analysis import (
     LibraryDataAnalyzer, 
     create_data_file, 
@@ -11,17 +23,13 @@ from app.services.library_analysis import (
     get_reports_by_analyst,
     get_report_by_id
 )
-from app.core.file_upload import save_upload_file
+
 from app.schemas.library_data import (
     DataFileOut, 
     AnalysisReportCreate, 
     AnalysisReportOut,
     AnalysisReportDetail
 )
-from app.models.analyst import Analyst
-from typing import List, Dict, Any
-import os
-import json
 
 router = APIRouter()
 
@@ -213,3 +221,125 @@ async def get_retention_metrics(
         return analyzer.analyze_retention()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        
+@router.get("/export-report/{report_id}")
+async def export_report(
+    report_id: int,
+    format: str = Query(..., description="Export format (pdf, csv, json, xlsx)"),
+    db: Session = Depends(get_db),
+    current_analyst: Analyst = Depends(get_current_analyst)
+):
+    # Fetch the report
+    report = db.query(AnalysisReport).filter(
+        AnalysisReport.id == report_id,
+        AnalysisReport.analyst_id == current_analyst.id
+    ).first()
+    
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    
+    # Create a temporary file for the export
+    temp_dir = tempfile.gettempdir()
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    filename_base = f"library_report_{report.report_name}_{timestamp}"
+    
+    if format == "json":
+        # Export as JSON
+        file_path = os.path.join(temp_dir, f"{filename_base}.json")
+        with open(file_path, 'w') as f:
+            json.dump(report.report_data, f, indent=2)
+        
+    elif format == "csv":
+        # Export as CSV
+        file_path = os.path.join(temp_dir, f"{filename_base}.csv")
+        
+        # Convert nested report data to flattened CSV format
+        data_rows = []
+        
+        # Process usage patterns
+        if 'usage_patterns' in report.report_data:
+            for key, value in report.report_data['usage_patterns'].items():
+                if isinstance(value, dict):
+                    for sub_key, sub_value in value.items():
+                        data_rows.append({
+                            'section': 'Usage Patterns',
+                            'category': key,
+                            'item': sub_key,
+                            'value': sub_value
+                        })
+        
+        # Process content performance
+        if 'content_performance' in report.report_data:
+            for key, value in report.report_data['content_performance'].items():
+                if isinstance(value, dict):
+                    for sub_key, sub_value in value.items():
+                        data_rows.append({
+                            'section': 'Content Performance',
+                            'category': key,
+                            'item': sub_key,
+                            'value': sub_value
+                        })
+        
+        # Process user segments
+        if 'user_segments' in report.report_data:
+            for key, value in report.report_data['user_segments'].items():
+                if isinstance(value, dict):
+                    for sub_key, sub_value in value.items():
+                        data_rows.append({
+                            'section': 'User Segments',
+                            'category': key,
+                            'item': sub_key,
+                            'value': sub_value
+                        })
+        
+        # Write to CSV
+        df = pd.DataFrame(data_rows)
+        df.to_csv(file_path, index=False)
+        
+    elif format == "xlsx":
+        # Export as Excel using the utility function
+        file_path = os.path.join(temp_dir, f"{filename_base}.xlsx")
+        export_to_excel(report.report_data, file_path)
+    
+    elif format == "pdf":
+        # Export as PDF using the utility function
+        file_path = os.path.join(temp_dir, f"{filename_base}.pdf")
+        export_to_pdf(report.report_data, file_path)
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported export format")
+    
+    # Store the export record in the database
+    export_record = ReportExport(
+        report_id=report.id,
+        analyst_id=current_analyst.id,
+        export_format=format,
+        file_path=file_path
+    )
+    db.add(export_record)
+    db.commit()
+    
+    # Return the file
+    media_type_mapping = {
+        "pdf": "application/pdf",
+        "csv": "text/csv",
+        "json": "application/json",
+        "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+    
+    return FileResponse(
+        path=file_path,
+        filename=os.path.basename(file_path),
+        media_type=media_type_mapping.get(format, f"application/{format}")
+    )
+
+@router.get("/exports")
+async def get_report_exports(
+    db: Session = Depends(get_db),
+    current_analyst: Analyst = Depends(get_current_analyst)
+):
+    """Get all exported reports for the current analyst"""
+    exports = db.query(ReportExport).filter(
+        ReportExport.analyst_id == current_analyst.id
+    ).order_by(ReportExport.created_at.desc()).all()
+    
+    return exports

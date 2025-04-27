@@ -13,6 +13,7 @@ class AnalysisReport(Base):
     report_data = Column(JSON)
     
     analyst = relationship("Analyst", back_populates="reports")
+    exports = relationship("ReportExport", back_populates="report")
 
 class DataFile(Base):
     __tablename__ = "data_files"
@@ -24,3 +25,17 @@ class DataFile(Base):
     file_path = Column(String, nullable=False)
     
     analyst = relationship("Analyst", back_populates="data_files")
+
+class ReportExport(Base):
+    __tablename__ = "report_exports"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    report_id = Column(Integer, ForeignKey("analysis_reports.id"))
+    analyst_id = Column(Integer, ForeignKey("analysts.id"))
+    export_format = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    # Define relationships
+    report = relationship("AnalysisReport", back_populates="exports")
+    analyst = relationship("Analyst", back_populates="exports")

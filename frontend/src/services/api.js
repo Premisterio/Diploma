@@ -160,6 +160,21 @@ export const fileAPI = {
 
 // Analysis API calls
 export const analysisAPI = {
+
+ 
+
+  getReportExports: async () => {
+    try {
+      const response = await axiosInstance.get('/analysis/exports');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to get report exports' 
+      };
+    }
+  },
+
   generateReport: async (fileId, reportName) => {
     try {
       const response = await axiosInstance.post(`/analysis/analyze?file_id=${fileId}`, {
@@ -256,7 +271,39 @@ export const analysisAPI = {
         error: error.response?.data?.detail || 'Failed to get retention metrics' 
       };
     }
-  }
+  },
+
+  exportReport: async (reportId, format) => {
+    try {
+      // Use axios instance directly for blob response
+      const response = await axiosInstance.get(`/analysis/export-report/${reportId}?format=${format}`, {
+        responseType: 'blob'
+      });
+      
+      // Create file download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename based on format
+      let extension = format;
+      const filename = `library_report_${reportId}.${extension}`;
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to export report' 
+      };
+    }
+  },
+  
+
 };
 
 export default axiosInstance;
