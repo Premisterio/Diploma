@@ -1,31 +1,30 @@
 import React from 'react';
 
 function BookCompletionChart({ completionRates = {} }) {
-  const completionData = Object.entries(completionRates || {})
+  const completionData = Object.entries(completionRates)
     .map(([genre, rate]) => ({
       genre,
       rate: parseFloat(rate),
-      percentage: parseFloat(rate) * 100
+      percentage: parseFloat(rate) * 100,
     }))
     .sort((a, b) => b.rate - a.rate);
 
   return (
-    <div className="completion-chart-container">
-      <h4>Book Completion Rates by Genre</h4>
-      
-      <div className="completion-bars">
-        {completionData.map((item, index) => (
-          <div key={index} className="completion-bar-item">
-            <div className="genre-label">{item.genre}</div>
-            <div className="progress-bar-container">
-              <div className="progress-bar-background">
-                <div 
-                  className="progress-bar-fill"
-                  style={{ width: `${item.percentage}%` }}
-                ></div>
-              </div>
-              <div className="progress-value">{item.percentage.toFixed(1)}%</div>
+    <div className="dashboard-card">
+      <h3 className="card-title">Book Completion Rates by Genre</h3>
+      <div className="ratings-chart">
+        {completionData.map((item, idx) => (
+          <div key={idx} className="rating-bar">
+            <span className="genre-name">{item.genre}</span>
+            <div className="rating-bar-container">
+              <div
+                className="rating-bar-fill"
+                style={{ width: `${item.percentage}%` }}
+              />
             </div>
+            <span className="rating-value">
+              {item.percentage.toFixed(1)}%
+            </span>
           </div>
         ))}
       </div>

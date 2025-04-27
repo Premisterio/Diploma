@@ -1,12 +1,27 @@
 import React from 'react';
 
 function RetentionChart({ userTenure = {}, activityByTenure = {} }) {
-  // Process the data
-  const tenureData = Object.entries(userTenure || {}).map(([tenure, count]) => ({
-    tenure,
-    count,
-    averageActivity: activityByTenure[tenure] || 0
-  }));
+  // Default data if empty
+  const defaultTenures = {
+    '< 1 month': 0,
+    '1-3 months': 0,
+    '3-6 months': 0,
+    '6-12 months': 0,
+    '> 1 year': 0
+  };
+  
+  // Use provided data or defaults
+  const tenureData = Object.keys(userTenure).length > 0 
+    ? Object.entries(userTenure).map(([tenure, count]) => ({
+        tenure,
+        count,
+        averageActivity: activityByTenure[tenure] || 0
+      }))
+    : Object.entries(defaultTenures).map(([tenure, count]) => ({
+        tenure,
+        count,
+        averageActivity: 0
+      }));
 
   // Sort data by tenure duration
   const tenureOrder = ['< 1 month', '1-3 months', '3-6 months', '6-12 months', '> 1 year'];

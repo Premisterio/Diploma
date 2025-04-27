@@ -1,27 +1,37 @@
 import React from 'react';
 
 function UserDemographicsChart({ ageDistribution = {}, educationDistribution = {} }) {
-  // Process age data for display
-  const ageData = Object.entries(ageDistribution || {}).map(([age, count], index) => ({
-    label: age,
-    count,
-    color: getColorForIndex(index)
-  }));
+  // Default data if empty
+  const defaultAgeData = {
+    '18-24': 0,
+    '25-34': 0,
+    '35-44': 0,
+    '45-54': 0,
+    '55+': 0
+  };
+  
+  const defaultEduData = {
+    'High School': 0,
+    'Bachelor': 0,
+    'Master': 0,
+    'PhD': 0
+  };
+  
+  // Use provided data or defaults
+  const ageData = Object.keys(ageDistribution).length > 0 ? ageDistribution : defaultAgeData;
+  const educationData = Object.keys(educationDistribution).length > 0 ? educationDistribution : defaultEduData;
 
-  // Process education data for display
-  const educationData = Object.entries(educationDistribution || {}).map(([education, count], index) => ({
-    label: education,
-    count,
-    color: getColorForIndex(index + 4) // Use different colors than age
-  }));
+  // Calculate max value for scaling bars
+  const maxAgeCount = Math.max(...Object.values(ageData), 1);
+  const maxEduCount = Math.max(...Object.values(educationData), 1);
 
   // Colors based on the CSS variables
   function getColorForIndex(index) {
     const colors = [
-      'var(--chart-color-1)',
-      'var(--chart-color-2)',
-      'var(--chart-color-3)',
-      'var(--chart-color-4)',
+      'var(--chart-color-1, #3b82f6)',
+      'var(--chart-color-2, #10b981)',
+      'var(--chart-color-3, #f59e0b)',
+      'var(--chart-color-4, #ef4444)',
       '#8b5cf6',
       '#ec4899',
       '#06b6d4',
@@ -30,26 +40,22 @@ function UserDemographicsChart({ ageDistribution = {}, educationDistribution = {
     return colors[index % colors.length];
   }
 
-  // Calculate max value for scaling bars
-  const maxAgeCount = Math.max(...Object.values(ageDistribution || {}), 1);
-  const maxEduCount = Math.max(...Object.values(educationDistribution || {}), 1);
-
   return (
     <div className="demographics-chart-container">
       <div className="horizontal-bar-chart">
         <h4>Age Distribution</h4>
-        {ageData.map((item, index) => (
+        {Object.entries(ageData).map((item, index) => (
           <div key={index} className="horizontal-bar-item">
-            <div className="bar-label">{item.label}</div>
+            <div className="bar-label">{item[0]}</div>
             <div className="bar-wrapper">
               <div 
                 className="horizontal-bar" 
                 style={{ 
-                  width: `${(item.count / maxAgeCount) * 100}%`,
-                  backgroundColor: item.color 
+                  width: `${(item[1] / maxAgeCount) * 100}%`,
+                  backgroundColor: getColorForIndex(index) 
                 }}
               ></div>
-              <span className="bar-value">{item.count}</span>
+              <span className="bar-value">{item[1]}</span>
             </div>
           </div>
         ))}
@@ -57,18 +63,18 @@ function UserDemographicsChart({ ageDistribution = {}, educationDistribution = {
       
       <div className="horizontal-bar-chart">
         <h4>Education Distribution</h4>
-        {educationData.map((item, index) => (
+        {Object.entries(educationData).map((item, index) => (
           <div key={index} className="horizontal-bar-item">
-            <div className="bar-label">{item.label}</div>
+            <div className="bar-label">{item[0]}</div>
             <div className="bar-wrapper">
               <div 
                 className="horizontal-bar" 
                 style={{ 
-                  width: `${(item.count / maxEduCount) * 100}%`,
-                  backgroundColor: item.color 
+                  width: `${(item[1] / maxEduCount) * 100}%`,
+                  backgroundColor: getColorForIndex(index + 4) 
                 }}
               ></div>
-              <span className="bar-value">{item.count}</span>
+              <span className="bar-value">{item[1]}</span>
             </div>
           </div>
         ))}

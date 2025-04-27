@@ -20,7 +20,7 @@ function GenreChart({ genrePopularity = {} }) {
       'var(--chart-color-2)',
       'var(--chart-color-3)',
       'var(--chart-color-4)',
-      '#8b5cf6', // Additional colors in case there are more than 4 genres
+      '#8b5cf6', 
       '#ec4899',
       '#06b6d4',
       '#84cc16'
@@ -51,37 +51,39 @@ function GenreChart({ genrePopularity = {} }) {
 
   return (
     <div className="genre-chart-container">
-      <div className="pie-chart-wrapper">
-        <div ref={chartRef} className="pie-chart"></div>
-      </div>
-      
-      <div className="chart-legend">
-        {genreData.length > 0 ? (
-          genreData.map((item, index) => (
-            <div key={index} className="legend-item">
-              <span 
-                className="legend-color" 
-                style={{ backgroundColor: item.color }}
-              ></span>
-              <span className="legend-label">
-                {item.genre}: {((item.count / total) * 100).toFixed(1)}% ({item.count})
-              </span>
-            </div>
-          ))
-        ) : (
-          // Placeholder legend items if no data
-          ['Fiction', 'Science', 'History', 'Biography'].map((genre, index) => (
-            <div key={index} className="legend-item">
-              <span 
-                className="legend-color" 
-                style={{ backgroundColor: getColorForIndex(index) }}
-              ></span>
-              <span className="legend-label">
-                {genre}: {(Math.random() * 30 + 5).toFixed(1)}%
-              </span>
-            </div>
-          ))
-        )}
+      <div className="genre-chart-flex-container">
+        <div className="pie-chart-wrapper">
+          <div ref={chartRef} className="pie-chart"></div>
+        </div>
+        
+        <div className="chart-legend">
+          {genreData.length > 0 ? (
+            genreData.map((item, index) => (
+              <div key={index} className="legend-item">
+                <span 
+                  className="legend-color" 
+                  style={{ backgroundColor: item.color }}
+                ></span>
+                <span className="legend-label">
+                  {item.genre}: {((item.count / total) * 100).toFixed(1)}% ({item.count})
+                </span>
+              </div>
+            ))
+          ) : (
+            // Placeholder legend items if no data
+            ['Fiction', 'Science', 'History', 'Biography'].map((genre, index) => (
+              <div key={index} className="legend-item">
+                <span 
+                  className="legend-color" 
+                  style={{ backgroundColor: getColorForIndex(index) }}
+                ></span>
+                <span className="legend-label">
+                  {genre}: {(Math.random() * 30 + 5).toFixed(1)}%
+                </span>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

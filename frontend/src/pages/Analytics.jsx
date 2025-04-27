@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import ActivityChart from "../components/analytics/ActivityChart";
 import GenreChart from "../components/analytics/GenreChart";
 import BooksTable from "../components/analytics/BooksTable";
 import UserDemographicsChart from "../components/analytics/UserDemographicsChart";
@@ -36,32 +35,14 @@ function Analytics() {
   // Filter the analyzed data based on user filters
   useEffect(() => {
     if (currentReport && currentReport.report_data) {
-      // Apply filters to the data
       const filteredData = applyFilters(currentReport.report_data, filters);
       setAnalysisData(filteredData);
     }
   }, [currentReport, filters]);
 
   const applyFilters = (data, filters) => {
-    // Clone the data to avoid mutating the original
     const filteredData = JSON.parse(JSON.stringify(data));
-    
-    // Apply date range filter
-    // Note: This is a simplified example. In a real implementation,
-    // you would need to filter the actual date fields in your data.
-    
-    // Apply activity type filter
-    if (filters.activityType !== "all" && filteredData.usage_patterns) {
-      // Filter activity data based on type
-      // This is a placeholder - implement based on your data structure
-    }
-    
-    // Apply genre filter
-    if (filters.genre !== "all" && filteredData.content_performance) {
-      // Filter content data based on genre
-      // This is a placeholder - implement based on your data structure
-    }
-    
+    // TODO: apply dateRange, activityType, genre filters to filteredData
     return filteredData;
   };
 
@@ -79,7 +60,7 @@ function Analytics() {
       }
     } catch (error) {
       console.error("Error fetching files:", error);
-      showAlert("Failed to load data files", "error");
+      showAlert("Не вдалося завантажити файли даних", "error");
     } finally {
       setLoading(false);
     }
@@ -100,7 +81,7 @@ function Analytics() {
 
   const handleFileSelect = (e) => {
     setSelectedFile(parseInt(e.target.value));
-    setAnalysisData(null);  // Clear previous analysis
+    setAnalysisData(null);
   };
 
   const handleReportSelect = async (e) => {
@@ -112,19 +93,17 @@ function Analytics() {
         if (response.success) {
           setCurrentReport(response.data);
           setAnalysisData(response.data.report_data);
-          // Set the report name for consistency
           setNewReportName(response.data.report_name);
         } else {
           showAlert(response.error, "error");
         }
       } catch (error) {
         console.error("Error fetching report:", error);
-        showAlert("Failed to load report", "error");
+        showAlert("Не вдалося завантажити звіт", "error");
       } finally {
         setLoading(false);
       }
     } else {
-      // Clear selection
       setCurrentReport(null);
       setAnalysisData(null);
     }
@@ -132,21 +111,19 @@ function Analytics() {
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
-      showAlert("Please select a file to analyze", "error");
+      showAlert("Будь ласка, оберіть файл для аналізу", "error");
       return;
     }
-    
     if (!newReportName.trim()) {
-      showAlert("Please enter a report name", "error");
+      showAlert("Будь ласка, введіть назву звіту", "error");
       return;
     }
 
     setIsAnalyzing(true);
     try {
       const response = await analysisAPI.generateReport(selectedFile, newReportName);
-      
       if (response.success) {
-        showAlert("Analysis completed successfully", "success");
+        showAlert("Аналіз успішно завершено", "success");
         await fetchReports();
         const reportData = await analysisAPI.getReportById(response.data.id);
         if (reportData.success) {
@@ -158,7 +135,7 @@ function Analytics() {
       }
     } catch (error) {
       console.error("Analysis error:", error);
-      showAlert("Failed to analyze data", "error");
+      showAlert("Не вдалося проаналізувати дані", "error");
     } finally {
       setIsAnalyzing(false);
     }
@@ -167,126 +144,121 @@ function Analytics() {
   const showAlert = (message, type) => {
     setAlertMessage(message);
     setAlertType(type);
-    setTimeout(() => {
-      setAlertMessage("");
-    }, 5000);
+    setTimeout(() => setAlertMessage(""), 5000);
   };
 
-  // Transform data for book table display
   const transformBooksData = () => {
-    if (!analysisData || !analysisData.content_performance) return [];
-    
-    const { top_borrowed_books, genre_popularity, avg_ratings_by_genre, top_authors } = analysisData.content_performance;
-    
-    // Map authors to books more intelligently
-    const authors = Object.keys(top_authors || {});
-    
-    // Create a combined dataset
-    const bookData = Object.entries(top_borrowed_books || {}).map(([title, count], index) => {
-      // Find the genre for this book (we'll try to be smarter than random assignment)
-      const genres = Object.keys(genre_popularity || {});
-      const genre = genres[index % genres.length];
-      
-      // Assign an author - in a real app you'd have this mapping in your data
-      const author = authors[index % authors.length] || "Unknown";
-      
-      return {
-        title,
-        author,
-        genre,
-        views: count,
-        downloads: Math.floor(count * 0.7), // Just for demonstration
-        rating: (avg_ratings_by_genre && genre && avg_ratings_by_genre[genre]) || 4.0
-      };
-    }).slice(0, 10);
-    
-    return bookData;
+    if (!analysisData?.content_performance) return [];
+    const {
+      top_borrowed_books = {},
+      genre_popularity = {},
+      avg_ratings_by_genre = {},
+      top_authors = {},
+    } = analysisData.content_performance;
+
+    const authors = Object.keys(top_authors);
+    return Object.entries(top_borrowed_books)
+      .map(([title, count], index) => {
+        const genres = Object.keys(genre_popularity);
+        const genre = genres[index % genres.length] || "";
+        const author = authors[index % authors.length] || "Невідомо";
+        return {
+          title,
+          author,
+          genre,
+          views: count,
+          downloads: Math.floor(count * 0.7),
+          rating: avg_ratings_by_genre[genre] || 4.0,
+        };
+      })
+      .slice(0, 10);
   };
 
   return (
     <div className="analytics-page">
       <div className="dashboard-card">
-        <h2 className="card-title">Library Analytics</h2>
+        <h2 className="card-title">Аналітика даних користувачів</h2>
         <p className="card-description">
-          Analyze user data and reader activity
+          Проведення аналітики даних користувачів онлайн-бібліотеки
         </p>
 
         {alertMessage && <Alert message={alertMessage} type={alertType} />}
 
         <div className="analytics-controls">
           <div className="control-group">
-            <label>Select Data File:</label>
-            <select 
-              onChange={handleFileSelect} 
+            <label>Виберіть файл з даними:</label>
+            <select
+              onChange={handleFileSelect}
               value={selectedFile || ""}
               disabled={loading || isAnalyzing}
             >
-              <option value="">-- Select File --</option>
+              <option value="">-- Виберіть файл --</option>
               {files.map(file => (
                 <option key={file.id} value={file.id}>
-                  {file.filename} ({new Date(file.upload_date).toLocaleDateString()})
+                  {file.filename} (
+                  {new Date(file.upload_date).toLocaleDateString('uk-UA')})
                 </option>
               ))}
             </select>
           </div>
 
           <div className="control-group">
-            <label>Report Name:</label>
-            <input 
-              type="text" 
+            <label>Назва звіту:</label>
+            <input
+              type="text"
               value={newReportName}
-              onChange={(e) => setNewReportName(e.target.value)}
-              placeholder="Enter name for new report"
+              onChange={e => setNewReportName(e.target.value)}
+              placeholder="Введіть назву звіту"
               disabled={loading || isAnalyzing}
             />
           </div>
 
           <div className="control-button-group">
-            <button 
-              className="analyze-button" 
+            <button
+              className="analyze-button"
               onClick={handleAnalyze}
               disabled={!selectedFile || isAnalyzing || !newReportName.trim()}
             >
-              {isAnalyzing ? "Analyzing..." : "Analyze Data"}
+              {isAnalyzing ? "Аналізую..." : "Аналізувати дані"}
             </button>
           </div>
 
           <div className="control-group">
-            <label>Saved Reports:</label>
-            <select 
+            <label>Збережені звіти:</label>
+            <select
               onChange={handleReportSelect}
               disabled={loading || isAnalyzing}
             >
-              <option value="">-- Select Report --</option>
+              <option value="">-- Виберіть звіт --</option>
               {reports.map(report => (
                 <option key={report.id} value={report.id}>
-                  {report.report_name} ({new Date(report.created_at).toLocaleDateString()})
+                  {report.report_name} (
+                  {new Date(report.created_at).toLocaleDateString('uk-UA')})
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Tab navigation */}
         {analysisData && (
           <div className="analytics-tabs">
-            <button 
+            <button
               className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
               onClick={() => setActiveTab('overview')}
             >
-              Overview
+              Огляд
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'users' ? 'active' : ''}`}
               onClick={() => setActiveTab('users')}
             >
-              User Analysis
+              Аналіз користувачів
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'content' ? 'active' : ''}`}
               onClick={() => setActiveTab('content')}
             >
-              Content Analysis
+              Аналіз контенту
             </button>
           </div>
         )}
@@ -294,116 +266,110 @@ function Analytics() {
 
       {loading ? (
         <div className="loading-container">
-          <LoadingSpinner size="large" text="Loading data..." />
+          <LoadingSpinner size="large" text="Завантаження даних..." />
         </div>
       ) : isAnalyzing ? (
         <div className="loading-container">
-          <LoadingSpinner size="large" text="Analyzing data..." />
+          <LoadingSpinner size="large" text="Аналіз даних..." />
         </div>
       ) : analysisData ? (
         <>
-          {/* Overview Tab */}
+          {/* Огляд */}
           {activeTab === 'overview' && (
             <>
               <div className="dashboard-card">
-                <h3 className="card-title">Library Overview</h3>
+                <h3 className="card-title">Огляд бібліотеки</h3>
                 <div className="stats-highlights">
                   <div className="stat-highlight-item">
                     <div className="stat-value">{analysisData.total_users}</div>
-                    <div className="stat-label">Total Users</div>
+                    <div className="stat-label">Усього користувачів</div>
                   </div>
                   <div className="stat-highlight-item">
                     <div className="stat-value">
                       {Object.keys(analysisData.content_performance.top_borrowed_books || {}).length}
                     </div>
-                    <div className="stat-label">Unique Books</div>
+                    <div className="stat-label">Унікальних книг</div>
                   </div>
                   <div className="stat-highlight-item">
                     <div className="stat-value">
                       {Object.values(analysisData.content_performance.top_borrowed_books || {}).reduce((a, b) => a + b, 0)}
                     </div>
-                    <div className="stat-label">Total Borrowings</div>
+                    <div className="stat-label">Всього позичень</div>
                   </div>
                   <div className="stat-highlight-item">
                     <div className="stat-value">
-                      {Object.values(analysisData.content_performance.avg_ratings_by_genre || {}).length > 0 
-                        ? (Object.values(analysisData.content_performance.avg_ratings_by_genre).reduce((a, b) => a + b, 0) / 
-                           Object.values(analysisData.content_performance.avg_ratings_by_genre).length).toFixed(1)
-                        : "N/A"}
+                      {Object.values(analysisData.content_performance.avg_ratings_by_genre || {}).length > 0
+                        ? (
+                            Object.values(analysisData.content_performance.avg_ratings_by_genre)
+                              .reduce((a, b) => a + b, 0) /
+                            Object.values(analysisData.content_performance.avg_ratings_by_genre).length
+                          ).toFixed(1)
+                        : "N/A"
+                      }
                     </div>
-                    <div className="stat-label">Avg Rating</div>
+                    <div className="stat-label">Середній рейтинг</div>
                   </div>
-                </div>
-              </div>
-
-              <div className="charts-grid">
-                <div className="dashboard-card">
-                  <h3 className="card-title">User Activity</h3>
-                  <ActivityChart
-                    hourlyActivity={analysisData.usage_patterns.hourly_activity}
-                    weeklyActivity={analysisData.usage_patterns.weekly_activity}
-                  />
-                </div>
-
-                <div className="dashboard-card">
-                  <h3 className="card-title">Genre Popularity</h3>
-                  <GenreChart
-                    genrePopularity={analysisData.content_performance.genre_popularity}
-                  />
                 </div>
               </div>
 
               <div className="dashboard-card">
-                <h3 className="card-title">Top Borrowed Books</h3>
+                <h3 className="card-title">Популярність жанрів</h3>
+                <p className="card-description">
+                  Розподіл жанрів у вашій бібліотеці
+                </p>
+                <GenreChart genrePopularity={analysisData.content_performance.genre_popularity} />
+              </div>
+
+              <div className="dashboard-card">
+                <h3 className="card-title">Топ позичених книг</h3>
                 <BooksTable data={transformBooksData()} />
               </div>
             </>
           )}
 
-          {/* User Analysis Tab */}
+          {/* Аналіз користувачів */}
           {activeTab === 'users' && (
             <>
               <div className="dashboard-card">
-                <h3 className="card-title">User Demographics</h3>
+                <h3 className="card-title">Демографія користувачів</h3>
                 <UserDemographicsChart 
                   ageDistribution={analysisData.user_segments.age_distribution}
                   educationDistribution={analysisData.user_segments.education_distribution}
                 />
-                
                 <div className="stats-grid">
                   <div className="stat-item">
-                    <h4>Top Professions</h4>
+                    <h4>Найпопулярніші професії</h4>
                     <ul>
-                      {analysisData.user_segments.top_professions && 
-                        Object.entries(analysisData.user_segments.top_professions)
-                          .map(([profession, count]) => (
+                      {analysisData.user_segments.top_professions &&
+                        Object.entries(analysisData.user_segments.top_professions).map(
+                          ([profession, count]) => (
                             <li key={profession}>
                               <span>{profession}</span>
-                              <span>{count} users</span>
+                              <span>{count} користувачів</span>
                             </li>
-                          ))
-                      }
+                          )
+                        )}
                     </ul>
                   </div>
                   <div className="stat-item">
-                    <h4>Account Types</h4>
+                    <h4>Типи акаунтів</h4>
                     <ul>
-                      {analysisData.user_segments.account_type_distribution && 
-                        Object.entries(analysisData.user_segments.account_type_distribution)
-                          .map(([type, count]) => (
+                      {analysisData.user_segments.account_type_distribution &&
+                        Object.entries(analysisData.user_segments.account_type_distribution).map(
+                          ([type, count]) => (
                             <li key={type}>
                               <span>{type}</span>
-                              <span>{count} users</span>
+                              <span>{count} користувачів</span>
                             </li>
-                          ))
-                      }
+                          )
+                        )}
                     </ul>
                   </div>
                 </div>
               </div>
 
               <div className="dashboard-card">
-                <h3 className="card-title">User Retention & Activity</h3>
+                <h3 className="card-title">Утримання та активність користувачів</h3>
                 <RetentionChart 
                   userTenure={analysisData.retention_metrics.user_tenure_distribution}
                   activityByTenure={analysisData.retention_metrics.avg_activity_by_tenure}
@@ -411,34 +377,34 @@ function Analytics() {
               </div>
 
               <div className="dashboard-card">
-                <h3 className="card-title">Device Usage</h3>
+                <h3 className="card-title">Використання пристроїв</h3>
                 <div className="stats-grid">
                   <div className="stat-item">
-                    <h4>Average Session Duration</h4>
+                    <h4>Середня тривалість сесії</h4>
                     <ul>
-                      {analysisData.usage_patterns.avg_duration_by_device && 
-                        Object.entries(analysisData.usage_patterns.avg_duration_by_device)
-                          .map(([device, duration]) => (
+                      {analysisData.usage_patterns.avg_duration_by_device &&
+                        Object.entries(analysisData.usage_patterns.avg_duration_by_device).map(
+                          ([device, duration]) => (
                             <li key={device}>
                               <span>{device}</span>
-                              <span>{duration.toFixed(1)} minutes</span>
+                              <span>{duration.toFixed(1)} хв.</span>
                             </li>
-                          ))
-                      }
+                          )
+                        )}
                     </ul>
                   </div>
                   <div className="stat-item">
-                    <h4>Average Pages Read</h4>
+                    <h4>Середня кількість сторінок</h4>
                     <ul>
-                      {analysisData.usage_patterns.avg_pages_by_device && 
-                        Object.entries(analysisData.usage_patterns.avg_pages_by_device)
-                          .map(([device, pages]) => (
+                      {analysisData.usage_patterns.avg_pages_by_device &&
+                        Object.entries(analysisData.usage_patterns.avg_pages_by_device).map(
+                          ([device, pages]) => (
                             <li key={device}>
                               <span>{device}</span>
-                              <span>{pages.toFixed(0)} pages</span>
+                              <span>{pages.toFixed(0)} стор.</span>
                             </li>
-                          ))
-                      }
+                          )
+                        )}
                     </ul>
                   </div>
                 </div>
@@ -446,55 +412,54 @@ function Analytics() {
             </>
           )}
 
-          {/* Content Analysis Tab */}
+          {/* Аналіз контенту */}
           {activeTab === 'content' && (
             <>
               <div className="dashboard-card">
-                <h3 className="card-title">Content Performance</h3>
+                <h3 className="card-title">Продуктивність контенту</h3>
                 <div className="charts-grid">
                   <div className="chart-container">
-                    <h4>Top Authors</h4>
+                    <h4>Найпопулярніші автори</h4>
                     <div className="ranking-list">
-                      {analysisData.content_performance.top_authors && 
+                      {analysisData.content_performance.top_authors &&
                         Object.entries(analysisData.content_performance.top_authors)
                           .slice(0, 10)
                           .map(([author, count], index) => (
                             <div key={author} className="ranking-item">
                               <span className="rank">{index + 1}</span>
                               <span className="name">{author}</span>
-                              <span className="value">{count} borrowings</span>
+                              <span className="value">{count} позичень</span>
                             </div>
-                          ))
-                      }
+                          ))}
                     </div>
-                  </div>
-                  
-                  <div className="chart-container">
-                    <BookCompletionChart 
-                      completionRates={analysisData.content_performance.completion_rates} 
-                    />
                   </div>
                 </div>
               </div>
 
+              <BookCompletionChart 
+                completionRates={analysisData.content_performance.completion_rates}
+              />
+
               <div className="dashboard-card">
-                <h3 className="card-title">Content Ratings by Genre</h3>
+                <h3 className="card-title">Рейтинги контенту за жанрами</h3>
                 <div className="ratings-chart">
-                  {analysisData.content_performance.avg_ratings_by_genre && 
-                    Object.entries(analysisData.content_performance.avg_ratings_by_genre)
-                      .map(([genre, rating]) => (
+                  {analysisData.content_performance.avg_ratings_by_genre &&
+                    Object.entries(analysisData.content_performance.avg_ratings_by_genre).map(
+                      ([genre, rating]) => (
                         <div key={genre} className="rating-bar">
                           <span className="genre-name">{genre}</span>
                           <div className="rating-bar-container">
-                            <div 
-                              className="rating-bar-fill" 
+                            <div
+                              className="rating-bar-fill"
                               style={{ width: `${(rating / 5) * 100}%` }}
-                            ></div>
+                            />
                           </div>
-                          <span className="rating-value">{rating.toFixed(1)}</span>
+                          <span className="rating-value">
+                            {rating.toFixed(1)}
+                          </span>
                         </div>
-                      ))
-                  }
+                      )
+                    )}
                 </div>
               </div>
             </>
@@ -502,7 +467,9 @@ function Analytics() {
         </>
       ) : (
         <div className="empty-state">
-          <p>Select a data file and generate a report to view analytics</p>
+          <p>
+            Оберіть файл даних та створіть звіт, щоб переглянути аналітику
+          </p>
         </div>
       )}
     </div>
