@@ -11,7 +11,7 @@ function BookCompletionChart({ completionRates = {} }) {
 
   return (
     <div className="dashboard-card">
-      <h3 className="card-title">Book Completion Rates by Genre</h3>
+      <h3 className="card-title">Рівень завершення книг за жанрами</h3>
       <div className="ratings-chart">
         {completionData.map((item, idx) => (
           <div key={idx} className="rating-bar">

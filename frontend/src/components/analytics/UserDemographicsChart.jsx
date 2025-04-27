@@ -1,7 +1,7 @@
 import React from 'react';
 
 function UserDemographicsChart({ ageDistribution = {}, educationDistribution = {} }) {
-  // Default data if empty
+  // Стандартні дані, якщо немає наданих
   const defaultAgeData = {
     '18-24': 0,
     '25-34': 0,
@@ -11,21 +11,21 @@ function UserDemographicsChart({ ageDistribution = {}, educationDistribution = {
   };
   
   const defaultEduData = {
-    'High School': 0,
-    'Bachelor': 0,
-    'Master': 0,
-    'PhD': 0
+    'Середня освіта': 0,
+    'Бакалавр': 0,
+    'Магістр': 0,
+    'Доктор наук (PhD)': 0
   };
   
-  // Use provided data or defaults
+  // Використовуємо надані дані або стандартні
   const ageData = Object.keys(ageDistribution).length > 0 ? ageDistribution : defaultAgeData;
   const educationData = Object.keys(educationDistribution).length > 0 ? educationDistribution : defaultEduData;
 
-  // Calculate max value for scaling bars
+  // Розрахунок максимального значення для масштабування
   const maxAgeCount = Math.max(...Object.values(ageData), 1);
   const maxEduCount = Math.max(...Object.values(educationData), 1);
 
-  // Colors based on the CSS variables
+  // Кольори з CSS змінних
   function getColorForIndex(index) {
     const colors = [
       'var(--chart-color-1, #3b82f6)',
@@ -43,7 +43,7 @@ function UserDemographicsChart({ ageDistribution = {}, educationDistribution = {
   return (
     <div className="demographics-chart-container">
       <div className="horizontal-bar-chart">
-        <h4>Age Distribution</h4>
+        <h4>Розподіл за віком</h4>
         {Object.entries(ageData).map((item, index) => (
           <div key={index} className="horizontal-bar-item">
             <div className="bar-label">{item[0]}</div>
@@ -62,7 +62,7 @@ function UserDemographicsChart({ ageDistribution = {}, educationDistribution = {
       </div>
       
       <div className="horizontal-bar-chart">
-        <h4>Education Distribution</h4>
+        <h4>Розподіл за освітою</h4>
         {Object.entries(educationData).map((item, index) => (
           <div key={index} className="horizontal-bar-item">
             <div className="bar-label">{item[0]}</div>
