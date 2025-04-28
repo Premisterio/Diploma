@@ -12,7 +12,7 @@ function Analytics() {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [reports, setReports] = useState([]);
-  const [setCurrentReport] = useState(null);
+  const [currentReport, setCurrentReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisData, setAnalysisData] = useState(null);
@@ -26,6 +26,8 @@ function Analytics() {
     fetchFiles();
     fetchReports();
   }, []);
+
+
 
   const fetchFiles = async () => {
     setLoading(true);
