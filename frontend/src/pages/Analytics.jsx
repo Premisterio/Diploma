@@ -158,7 +158,7 @@ function Analytics() {
   };
 
   return (
-    <div className="analytics-page">
+    <div>
       <div className="dashboard-card">
         <h2 className="card-title">Аналітика даних користувачів</h2>
         <p className="card-description">

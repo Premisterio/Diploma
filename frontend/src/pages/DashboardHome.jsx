@@ -368,28 +368,6 @@ function DashboardHome() {
               )}
             </div>
           </div>
-          
-          <div className="dashboard-card">
-            <h3 className="card-title">Остання активність</h3>
-            {stats.recentActivity.length > 0 ? (
-              <div className="activity-list">
-                {stats.recentActivity.map((activity, index) => (
-                  <div key={index} className="activity-item">
-                    
-                    <div className="activity-content">
-                      <span className="activity-user">{activity.user}</span>
-                      <span className="activity-action">{activity.action}</span>
-                      <span className="activity-detail">{activity.detail}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <p className="empty-state-p">Немає записів активності</p>
-              </div>
-            )}
-          </div>
         </>
       )}
       
