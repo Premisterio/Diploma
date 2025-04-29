@@ -3,6 +3,7 @@ from app.api import routes, analysis_routes
 from app.core.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from app.core.config import settings
 
 # Create uploads directory
 os.makedirs(os.path.join("uploads", "data_files"), exist_ok=True)
@@ -19,7 +20,7 @@ app.include_router(analysis_routes.router, prefix="/api/analysis", tags=["analys
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite's default port
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
