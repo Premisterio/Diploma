@@ -8,7 +8,7 @@ from app.core.database import get_db
 from app.models.analyst import Analyst
 import os
 
-load_dotenv()  # автоматично підтягує змінні з .env
+load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")

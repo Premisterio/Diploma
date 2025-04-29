@@ -40,16 +40,11 @@ async def upload_data_file(
     current_analyst: Analyst = Depends(get_current_analyst)
 ):
     """Upload library user data file"""
-    # Validate file type
     if not file.filename.endswith('.json'):
         raise HTTPException(status_code=400, detail="Only JSON files are accepted")
     
-    # Save file to disk
     file_path = save_upload_file(file, current_analyst.id)
-    
-    # Save file info to database
     data_file = create_data_file(db, file_path, current_analyst.id, file.filename)
-    
     return data_file
 
 @router.get("/data-files", response_model=List[DataFileOut])
@@ -68,7 +63,6 @@ async def analyze_data(
     current_analyst: Analyst = Depends(get_current_analyst)
 ):
     """Analyze a data file and save the report"""
-    # Get the file
     file = db.query(DataFile).filter(
         DataFile.id == file_id,
         DataFile.analyst_id == current_analyst.id
@@ -78,11 +72,9 @@ async def analyze_data(
         raise HTTPException(status_code=404, detail="File not found")
     
     try:
-        # Run analysis
         analyzer = LibraryDataAnalyzer(file.file_path)
         report_data = analyzer.generate_comprehensive_report()
-        
-        # Save report to database
+
         db_report = save_analysis_report(
             db, 
             report.report_name, 
@@ -123,7 +115,6 @@ async def get_usage_patterns(
     current_analyst: Analyst = Depends(get_current_analyst)
 ):
     """Analyze usage patterns from a specific data file"""
-    # Get the file
     file = db.query(DataFile).filter(
         DataFile.id == file_id,
         DataFile.analyst_id == current_analyst.id
@@ -229,7 +220,6 @@ async def export_report(
     db: Session = Depends(get_db),
     current_analyst: Analyst = Depends(get_current_analyst)
 ):
-    # Fetch the report
     report = db.query(AnalysisReport).filter(
         AnalysisReport.id == report_id,
         AnalysisReport.analyst_id == current_analyst.id
@@ -237,26 +227,21 @@ async def export_report(
     
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
-    
-    # Create a temporary file for the export
+
     temp_dir = tempfile.gettempdir()
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     filename_base = f"library_report_{report.report_name}_{timestamp}"
     
     if format == "json":
-        # Export as JSON
         file_path = os.path.join(temp_dir, f"{filename_base}.json")
         with open(file_path, 'w') as f:
             json.dump(report.report_data, f, indent=2)
         
     elif format == "csv":
-        # Export as CSV
         file_path = os.path.join(temp_dir, f"{filename_base}.csv")
         
-        # Convert nested report data to flattened CSV format
         data_rows = []
-        
-        # Process usage patterns
+
         if 'usage_patterns' in report.report_data:
             for key, value in report.report_data['usage_patterns'].items():
                 if isinstance(value, dict):
@@ -268,7 +253,6 @@ async def export_report(
                             'value': sub_value
                         })
         
-        # Process content performance
         if 'content_performance' in report.report_data:
             for key, value in report.report_data['content_performance'].items():
                 if isinstance(value, dict):
@@ -280,7 +264,6 @@ async def export_report(
                             'value': sub_value
                         })
         
-        # Process user segments
         if 'user_segments' in report.report_data:
             for key, value in report.report_data['user_segments'].items():
                 if isinstance(value, dict):
@@ -291,24 +274,20 @@ async def export_report(
                             'item': sub_key,
                             'value': sub_value
                         })
-        
-        # Write to CSV
+
         df = pd.DataFrame(data_rows)
         df.to_csv(file_path, index=False)
         
     elif format == "xlsx":
-        # Export as Excel using the utility function
         file_path = os.path.join(temp_dir, f"{filename_base}.xlsx")
         export_to_excel(report.report_data, file_path)
     
     elif format == "pdf":
-        # Export as PDF using the utility function
         file_path = os.path.join(temp_dir, f"{filename_base}.pdf")
         export_to_pdf(report.report_data, file_path)
     else:
         raise HTTPException(status_code=400, detail="Unsupported export format")
     
-    # Store the export record in the database
     export_record = ReportExport(
         report_id=report.id,
         analyst_id=current_analyst.id,
@@ -317,8 +296,7 @@ async def export_report(
     )
     db.add(export_record)
     db.commit()
-    
-    # Return the file
+
     media_type_mapping = {
         "pdf": "application/pdf",
         "csv": "text/csv",
@@ -343,3 +321,79 @@ async def get_report_exports(
     ).order_by(ReportExport.created_at.desc()).all()
     
     return exports
+
+@router.delete("/reports/{report_id}")
+async def delete_report(
+    report_id: int,
+    db: Session = Depends(get_db),
+    current_analyst: Analyst = Depends(get_current_analyst)
+):
+    """Delete a specific report by ID"""
+    report = db.query(AnalysisReport).filter(
+        AnalysisReport.id == report_id,
+        AnalysisReport.analyst_id == current_analyst.id
+    ).first()
+    
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    db.query(ReportExport).filter(
+        ReportExport.report_id == report_id
+    ).delete(synchronize_session=False)
+    
+    db.delete(report)
+    db.commit()
+    
+    return {"message": "Report deleted successfully"}
+
+@router.delete("/data-files/{file_id}")
+async def delete_data_file(
+    file_id: int,
+    db: Session = Depends(get_db),
+    current_analyst: Analyst = Depends(get_current_analyst)
+):
+    """Delete a specific data file by ID"""
+    file = db.query(DataFile).filter(
+        DataFile.id == file_id,
+        DataFile.analyst_id == current_analyst.id
+    ).first()
+    
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    if os.path.exists(file.file_path):
+        try:
+            os.remove(file.file_path)
+        except OSError as e:
+            print(f"Error deleting file {file.file_path}: {e}")
+
+    db.delete(file)
+    db.commit()
+    
+    return {"message": "Data file deleted successfully"}
+
+@router.delete("/exports/{export_id}")
+async def delete_export(
+    export_id: int,
+    db: Session = Depends(get_db),
+    current_analyst: Analyst = Depends(get_current_analyst)
+):
+    """Delete a specific report export by ID"""
+    export = db.query(ReportExport).filter(
+        ReportExport.id == export_id,
+        ReportExport.analyst_id == current_analyst.id
+    ).first()
+    
+    if not export:
+        raise HTTPException(status_code=404, detail="Export not found")
+    
+    if os.path.exists(export.file_path):
+        try:
+            os.remove(export.file_path)
+        except OSError as e:
+            print(f"Error deleting export file {export.file_path}: {e}")
+    
+    db.delete(export)
+    db.commit()
+    
+    return {"message": "Export deleted successfully"}

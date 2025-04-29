@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
 
-// Create axios instance
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -10,7 +9,6 @@ const axiosInstance = axios.create({
   },
 });
 
-// Request interceptor - Add auth token to requests
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -22,13 +20,11 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - Handle token refresh
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
-    // If error is 401 and we haven't tried to refresh the token yet
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
@@ -37,23 +33,20 @@ axiosInstance.interceptors.response.use(
         if (!refreshToken) {
           throw new Error('No refresh token available');
         }
-        
-        // Try to refresh the token
+
         const response = await axios.post(`${API_URL}/refresh`, {}, {
           headers: {
             'Authorization': `Bearer ${refreshToken}`
           }
         });
         
-        // Update tokens
+
         const { access_token } = response.data;
         localStorage.setItem('token', access_token);
         
-        // Update auth header and retry original request
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        // Clear tokens and redirect to login
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         window.location.href = '/auth';
@@ -65,7 +58,6 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// Auth API calls
 export const authAPI = {
   login: async (email, password) => {
     try {
@@ -124,7 +116,6 @@ export const authAPI = {
   }
 };
 
-// File API calls
 export const fileAPI = {
   uploadFile: async (file) => {
     try {
@@ -155,14 +146,22 @@ export const fileAPI = {
         error: error.response?.data?.detail || 'Failed to get uploaded files' 
       };
     }
+  },
+  
+  deleteDataFile: async (fileId) => {
+    try {
+      const response = await axiosInstance.delete(`/analysis/data-files/${fileId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to delete data file' 
+      };
+    }
   }
 };
 
-// Analysis API calls
 export const analysisAPI = {
-
- 
-
   getReportExports: async () => {
     try {
       const response = await axiosInstance.get('/analysis/exports');
@@ -209,6 +208,18 @@ export const analysisAPI = {
       return { 
         success: false, 
         error: error.response?.data?.detail || 'Failed to get report details' 
+      };
+    }
+  },
+  
+  deleteReport: async (reportId) => {
+    try {
+      const response = await axiosInstance.delete(`/analysis/reports/${reportId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to delete report' 
       };
     }
   },
@@ -275,17 +286,14 @@ export const analysisAPI = {
 
   exportReport: async (reportId, format) => {
     try {
-      // Use axios instance directly for blob response
       const response = await axiosInstance.get(`/analysis/export-report/${reportId}?format=${format}`, {
         responseType: 'blob'
       });
       
-      // Create file download
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
       
-      // Generate filename based on format
       let extension = format;
       const filename = `library_report_${reportId}.${extension}`;
       
@@ -302,8 +310,18 @@ export const analysisAPI = {
       };
     }
   },
-  
 
+  deleteExport: async (exportId) => {
+    try {
+      const response = await axiosInstance.delete(`/analysis/exports/${exportId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Failed to delete export' 
+      };
+    }
+  }
 };
 
 export default axiosInstance;
