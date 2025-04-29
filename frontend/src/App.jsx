@@ -6,7 +6,6 @@ import DashboardHome from "./pages/DashboardHome";
 import UploadFile from "./pages/UploadFile";
 import Analytics from "./pages/Analytics";
 import ExportReport from "./pages/ExportReport";
-import Settings from "./pages/Settings";
 import LoadingSpinner from "./components/LoadingSpinner";
 
 
@@ -38,7 +37,6 @@ function App() {
         <Route path="upload" element={<UploadFile />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="export" element={<ExportReport />} />
-        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* Redirect root to dashboard or auth based on authentication */}

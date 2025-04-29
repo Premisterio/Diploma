@@ -34,7 +34,7 @@ function RetentionChart({ userTenure = {}, activityByTenure = {} }) {
 
   return (
     <div className="retention-chart-container">
-      <h4>Аналіз утримання користувачів</h4>
+      <h4 className="h4-label">Аналіз утримання користувачів</h4>
       
       <div className="retention-chart">
         {tenureData.map((item, index) => (
