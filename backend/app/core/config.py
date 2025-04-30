@@ -1,5 +1,6 @@
 import os
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+
 
 class Settings(BaseSettings):
     # Database configuration
@@ -14,7 +15,7 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list = [
         "http://localhost:5173",  # Local development
-        "https://library-analytics.vercel.app",  # Production frontend (update with your actual domain)
+        "https://diploma-five-vert.vercel.app/",  # Production frontend
     ]
     
     # File paths
