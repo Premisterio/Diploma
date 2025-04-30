@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     
     # CORS
     CORS_ORIGINS: list = [
-        "http://localhost:5173",  # Local development
-        "https://diploma-five-ashy.vercel.app/",  # Production frontend
+        "https://diploma-five-ashy.vercel.app",
+        "https://diploma-five-ashy.vercel.app/",
     ]
     
     # File paths
