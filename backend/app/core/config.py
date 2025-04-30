@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list = [
         "https://diploma-five-ashy.vercel.app",
-        "https://diploma-five-ashy.vercel.app/",
     ]
     
     # File paths
