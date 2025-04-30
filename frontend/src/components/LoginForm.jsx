@@ -96,9 +96,6 @@ function LoginForm() {
           <label htmlFor="password" className="form-label">
             Пароль
           </label>
-          <a href="#" className="form-link">
-            Забули пароль?
-          </a>
         </div>
         <input
           id="password"
