@@ -117,7 +117,7 @@ function LoginForm() {
       <button type="submit" className="form-button" disabled={isLoading}>
         {isLoading ? (
           <span className="button-loading">
-            <LoadingSpinner size="small" text={null} /> Завантаження...
+            Завантаження...
           </span>
         ) : (
           "Увійти"
