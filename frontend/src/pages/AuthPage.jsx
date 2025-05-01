@@ -8,14 +8,16 @@ function AuthPage() {
 
   return (
     <div className="auth-container">
+      <h1 className="app-title">Аналіз даних користувачів</h1>
       <div className="auth-card">
         <div className="auth-header">
           <div className="header-top">
-            <h1 className="auth-title">Авторизація</h1>
+            <h2 className="auth-title">Авторизація</h2>
             <ThemeToggle />
           </div>
           <p className="auth-description">Увійдіть або створіть новий обліковий запис</p>
         </div>
+        
         <div className="auth-content">
           <div className="tabs">
             <div className="tabs-list">
@@ -35,6 +37,7 @@ function AuthPage() {
             {activeTab === "login" ? <LoginForm /> : <RegisterForm />}
           </div>
         </div>
+        
         <div className="auth-footer">
           <p>© 2025 Volodymyr Hrehul</p>
         </div>

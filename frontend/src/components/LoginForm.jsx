@@ -96,9 +96,6 @@ function LoginForm() {
           <label htmlFor="password" className="form-label">
             Пароль
           </label>
-          <a href="#" className="form-link">
-            Забули пароль?
-          </a>
         </div>
         <input
           id="password"
@@ -120,7 +117,7 @@ function LoginForm() {
       <button type="submit" className="form-button" disabled={isLoading}>
         {isLoading ? (
           <span className="button-loading">
-            <LoadingSpinner size="small" text={null} /> Завантаження...
+            Завантаження...
           </span>
         ) : (
           "Увійти"
