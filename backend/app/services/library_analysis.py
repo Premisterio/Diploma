@@ -118,6 +118,26 @@ class LibraryDataAnalyzer:
             if 'timestamp' in self.search_df.columns:
                 self.search_df['timestamp'] = pd.to_datetime(self.search_df['timestamp']).dt.tz_localize(None)
 
+    def clean_for_json(self, data):
+        """Clean data structure to remove NaN values and make it JSON serializable"""
+        if isinstance(data, dict):
+            cleaned = {}
+            for key, value in data.items():
+                cleaned[key] = self.clean_for_json(value)
+            return cleaned
+        elif isinstance(data, list):
+            return [self.clean_for_json(item) for item in data]
+        elif isinstance(data, (np.integer, np.int64)):
+            return int(data)
+        elif isinstance(data, (np.floating, np.float64)):
+            if np.isnan(data):
+                return 0  # or None, depending on your preference
+            return float(data)
+        elif pd.isna(data):
+            return 0  # or None, depending on your preference
+        else:
+            return data
+
     # Analysis methods (same as in your original app.py)
     def analyze_usage_patterns(self):
         """Analyze user activity patterns"""
@@ -154,7 +174,7 @@ class LibraryDataAnalyzer:
         recency_counts = recency_segments.value_counts()
         results['login_recency'] = recency_counts.to_dict()
 
-        return results
+        return self.clean_for_json(results)
 
     def analyze_content_performance(self):
         """Analyze book performance metrics"""
@@ -181,7 +201,7 @@ class LibraryDataAnalyzer:
             top_authors = self.borrowing_df['author'].value_counts().head(10)
             results['top_authors'] = top_authors.to_dict()
 
-        return results
+        return self.clean_for_json(results)
 
     def analyze_user_segments(self):
         """Segment users based on behavior and demographics"""
@@ -213,7 +233,7 @@ class LibraryDataAnalyzer:
             genre_by_age_pct = genre_by_age.div(genre_by_age.sum(axis=1), axis=0).round(2)
             results['genre_preferences_by_age'] = genre_by_age_pct.to_dict()
 
-        return results
+        return self.clean_for_json(results)
 
     def analyze_search_patterns(self):
         """Analyze user search behavior"""
@@ -234,7 +254,7 @@ class LibraryDataAnalyzer:
             search_by_hour = self.search_df['hour'].value_counts().sort_index()
             results['searches_by_hour'] = search_by_hour.to_dict()
 
-        return results
+        return self.clean_for_json(results)
 
     def analyze_retention(self):
         """Analyze user retention metrics"""
@@ -264,7 +284,7 @@ class LibraryDataAnalyzer:
                 'activity_count'].mean().round(1)
             results['avg_activity_by_tenure'] = activity_by_tenure.to_dict()
 
-        return results
+        return self.clean_for_json(results)
 
     def generate_comprehensive_report(self):
         """Generate a comprehensive analysis report"""
@@ -278,7 +298,7 @@ class LibraryDataAnalyzer:
             'retention_metrics': self.analyze_retention()
         }
 
-        return report
+        return self.clean_for_json(report)
 
 def create_data_file(db: Session, file_path: str, analyst_id: int, filename: str):
     """Store information about an uploaded data file"""
